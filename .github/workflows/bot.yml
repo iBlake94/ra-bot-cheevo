@@ -35,9 +35,15 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
-          # Only try to add the file if it actually exists
+          # 1. Only try to add the file if it actually exists
           if [ -f posted.json ]; then
             git add posted.json
+            
+            # 2. Check if the file actually has new changes
+            if ! git diff --staged --quiet; then
+              git commit -m "chore: update posted.json history"
+              git push
+            else
+              echo "No new achievements to save."
+            fi
           fi
-          
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update posted.json history" && git push)-m "chore: update posted.json history" && git push)
