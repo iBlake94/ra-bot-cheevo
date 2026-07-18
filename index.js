@@ -40,7 +40,7 @@ async function shareRecentAchievements() {
 
   let achievements = await getUserRecentAchievements(raAuth, { 
     username: RA_USERNAME, 
-    recentMinutes: 60 
+    recentMinutes: 15 
   });
 
   console.log(`Found ${achievements?.length || 0} achievements.`);
