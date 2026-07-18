@@ -1,0 +1,31 @@
+name: Share RetroAchievements
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch: 
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' 
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run script
+        env:
+          RA_USERNAME: ${{ secrets.RA_USERNAME }}
+          RA_API_KEY: ${{ secrets.RA_API_KEY }}
+          BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
+          BSKY_PASSWORD: ${{ secrets.BSKY_PASSWORD }}
+        run: node index.js
