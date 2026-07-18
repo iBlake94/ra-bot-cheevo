@@ -1,15 +1,35 @@
-import { BskyAgent } from '@atproto/api';
+import { BskyAgent, RichText } from '@atproto/api';
 import { buildAuthorization, getUserRecentAchievements } from '@retroachievements/api';
 import * as dotenv from 'dotenv';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 dotenv.config();
 
-// Load Credentials
 const { RA_USERNAME, RA_API_KEY, BSKY_HANDLE, BSKY_PASSWORD } = process.env;
 
+if (!RA_USERNAME || !RA_API_KEY || !BSKY_HANDLE || !BSKY_PASSWORD) {
+  process.exit(1);
+}
+
+const HISTORY_FILE = path.join(process.cwd(), 'posted.json');
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function loadHistory(): Promise<string[]> {
+  try {
+    const data = await fs.readFile(HISTORY_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
+}
+
+async function saveHistory(history: string[]) {
+  await fs.writeFile(HISTORY_FILE, JSON.stringify(history, null, 2), 'utf-8');
+}
+
 async function shareRecentAchievements() {
-  console.log("Connecting to the AT Protocol...");
-  
   const agent = new BskyAgent({ service: 'https://bsky.social' }); 
   await agent.login({ identifier: BSKY_HANDLE, password: BSKY_PASSWORD });
 
@@ -18,49 +38,72 @@ async function shareRecentAchievements() {
     webApiKey: RA_API_KEY 
   });
 
-  console.log("Checking for recent RetroAchievements...");
-  
-  const achievements = await getUserRecentAchievements(raAuth, { 
+  let achievements = await getUserRecentAchievements(raAuth, { 
     username: RA_USERNAME, 
     recentMinutes: 60 
   });
 
   if (!achievements || achievements.length === 0) {
-    console.log("No new achievements found in the last hour.");
     return;
   }
 
+  achievements = achievements.reverse();
+  const history = await loadHistory();
+  let updatedHistory = false;
+
   for (const ach of achievements) {
-    console.log(`Preparing to post: ${ach.title}`);
+    const uniqueKey = `${ach.gameTitle}-${ach.title}`;
 
-    const badgeUrl = `https://media.retroachievements.org${ach.badgeUrl}`;
-    const imageRes = await fetch(badgeUrl);
-    const imageBuffer = await imageRes.arrayBuffer();
+    if (history.includes(uniqueKey)) {
+      continue;
+    }
 
-    const { data: blobData } = await agent.uploadBlob(new Uint8Array(imageBuffer), {
-      encoding: 'image/png'
-    });
+    try {
+      const badgeUrl = `https://media.retroachievements.org${ach.badgeUrl}`;
+      const imageRes = await fetch(badgeUrl);
+      
+      if (!imageRes.ok) throw new Error(`Failed to fetch image: ${imageRes.statusText}`);
+      
+      const imageBuffer = await imageRes.arrayBuffer();
+      const { data: blobData } = await agent.uploadBlob(new Uint8Array(imageBuffer), {
+        encoding: 'image/png'
+      });
 
-    const postText = `🏆 I just unlocked an achievement on #RetroAchievements! Follow me https://retroachievements.org/user/iBlake94
+      const postText = `🏆 I just unlocked an achievement on #RetroAchievements! Follow me https://retroachievements.org/user/iBlake94
     
 ${ach.title} (${ach.points}pts)
 🎮 ${ach.gameTitle} [${ach.consoleName}]
 📝 ${ach.description}`;
 
-    await agent.post({
-      text: postText,
-      embed: {
-        $type: 'app.bsky.embed.images',
-        images: [
-          {
-            image: blobData.blob,
-            alt: `Achievement Badge: ${ach.title}`
-          }
-        ]
-      }
-    });
+      const rt = new RichText({ text: postText });
+      await rt.detectFacets(agent);
 
-    console.log(`✅ Successfully shared: ${ach.title}`);
+      await agent.post({
+        text: rt.text,
+        facets: rt.facets,
+        embed: {
+          $type: 'app.bsky.embed.images',
+          images: [
+            {
+              image: blobData.blob,
+              alt: `Achievement Badge: ${ach.title} from ${ach.gameTitle}`
+            }
+          ]
+        }
+      });
+      
+      history.push(uniqueKey);
+      updatedHistory = true;
+
+      await delay(2000);
+      
+    } catch (error) {
+      console.error(`Failed to share ${ach.title}:`, error);
+    }
+  }
+
+  if (updatedHistory) {
+    await saveHistory(history);
   }
 }
 
