@@ -95,7 +95,7 @@ ${ach.title} (${ach.points}pts)
       history.push(uniqueKey);
       updatedHistory = true;
 
-      await delay(15000);
+      await delay(5000);
       
     } catch (error) {
       console.error(`Failed to share ${ach.title}:`, error);
