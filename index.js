@@ -14,9 +14,9 @@ if (!RA_USERNAME || !RA_API_KEY || !BSKY_HANDLE || !BSKY_PASSWORD) {
 
 const HISTORY_FILE = path.join(process.cwd(), 'posted.json');
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function loadHistory(): Promise<string[]> {
+async function loadHistory() {
   try {
     const data = await fs.readFile(HISTORY_FILE, 'utf-8');
     return JSON.parse(data);
@@ -25,7 +25,7 @@ async function loadHistory(): Promise<string[]> {
   }
 }
 
-async function saveHistory(history: string[]) {
+async function saveHistory(history) {
   await fs.writeFile(HISTORY_FILE, JSON.stringify(history, null, 2), 'utf-8');
 }
 
