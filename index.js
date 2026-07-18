@@ -69,7 +69,7 @@ async function shareRecentAchievements() {
         encoding: 'image/png'
       });
 
-      const postText = `🏆 I just unlocked an achievement on #RetroAchievements! Follow me https://retroachievements.org/user/iBlake94
+      const postText = `🏆 I just unlocked an achievement on #RetroAchievements! Follow @bpolzr.me https://retroachievements.org/user/iBlake94
     
 ${ach.title} (${ach.points}pts)
 🎮 ${ach.gameTitle} [${ach.consoleName}]
@@ -95,7 +95,7 @@ ${ach.title} (${ach.points}pts)
       history.push(uniqueKey);
       updatedHistory = true;
 
-      await delay(2000);
+      await delay(15000);
       
     } catch (error) {
       console.error(`Failed to share ${ach.title}:`, error);
