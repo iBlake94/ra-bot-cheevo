@@ -20,7 +20,7 @@ async function shareRecentAchievements() {
 
   console.log("Checking for recent RetroAchievements...");
   
- const achievements = await getUserRecentAchievements(raAuth, { 
+  const achievements = await getUserRecentAchievements(raAuth, { 
     username: RA_USERNAME, 
     recentMinutes: 60 
   });
@@ -30,35 +30,16 @@ async function shareRecentAchievements() {
     return;
   }
 
-  // --- NEW DEDUPLICATION CODE ---
-  console.log("Checking PDS for existing records to avoid duplicates...");
+  for (const ach of achievements) {
+    console.log(`Preparing to post: ${ach.title}`);
 
-  // Fetch your most recent posts/records
-  const existingRecords = await agent.com.atproto.repo.listRecords({
-    repo: agent.session.did,
-    collection: 'app.bsky.feed.post', 
-    limit: 50
-  });
+    const badgeUrl = `https://media.retroachievements.org${ach.badgeUrl}`;
+    const imageRes = await fetch(badgeUrl);
+    const imageBuffer = await imageRes.arrayBuffer();
 
-  // Filter out any achievement that is already in your recent records
-  const newAchievements = achievements.filter(ach => {
-    return !existingRecords.data.records.some(record => {
-       // record.value.text looks for standard Bluesky posts
-       // record.value.achievementTitle looks for the custom Lexicon format
-       const recordText = record.value.text || record.value.achievementTitle || ""; 
-       return recordText.includes(ach.title);
+    const { data: blobData } = await agent.uploadBlob(new Uint8Array(imageBuffer), {
+      encoding: 'image/png'
     });
-  });
-
-  if (newAchievements.length === 0) {
-    console.log("Achievements found, but they have all been posted already. Skipping!");
-    return;
-  }
-  // ------------------------------
-
-  // 4. Process and post each UNPUBLISHED achievement
-  for (const ach of newAchievements) {
-      console.log(`Preparing to post: ${ach.title}`);
 
     const postText = `🏆 I just unlocked an achievement on #RetroAchievements! Follow me https://retroachievements.org/user/iBlake94
     
