@@ -41,8 +41,8 @@ async function shareRecentAchievements() {
       encoding: 'image/png'
     });
 
-    const postText = `🏆 I just unlocked an achievement!
-
+    const postText = `🏆 I just unlocked an achievement! Follow me https://retroachievements.org/user/iBlake94
+    
 ${ach.title} (${ach.points}pts)
 🎮 ${ach.gameTitle} [${ach.consoleName}]
 📝 ${ach.description}`;
