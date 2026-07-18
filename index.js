@@ -71,11 +71,13 @@ async function shareRecentAchievements() {
         encoding: 'image/png'
       });
 
-      const postText = `🏆 I just unlocked an achievement on #RetroAchievements! Follow @bpolzr.me https://retroachievements.org/user/iBlake94
+const postText = `🏆 I just unlocked an achievement on #RetroAchievements! Follow @bpolzr.me https://retroachievements.org/user/iBlake94
     
 ${ach.title} (${ach.points}pts)
 🎮 ${ach.gameTitle} [${ach.consoleName}]
-📝 ${ach.description}`;
+📝 ${ach.description}
+
+🔗 https://retroachievements.org/achievement/${ach.achievementId}`;
 
       const rt = new RichText({ text: postText });
       await rt.detectFacets(agent);
