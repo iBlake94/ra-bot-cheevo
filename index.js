@@ -43,6 +43,8 @@ async function shareRecentAchievements() {
     recentMinutes: 60 
   });
 
+  console.log(`Found ${achievements?.length || 0} achievements.`);
+
   if (!achievements || achievements.length === 0) {
     return;
   }
