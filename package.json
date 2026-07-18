@@ -1,0 +1,15 @@
+{
+  "name": "ra-bsky-bot",
+  "version": "1.0.0",
+  "description": "A bot that posts RetroAchievements to Bluesky",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@atproto/api": "^0.13.0",
+    "@retroachievements/api": "^3.1.0",
+    "dotenv": "^16.4.5"
+  }
+}
