@@ -30,9 +30,14 @@ jobs:
           BSKY_PASSWORD: ${{ secrets.BSKY_PASSWORD }}
         run: node index.js
 
-      - name: Save posted.json history
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add posted.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update posted.json history" && git push)
+- name: Save posted.json history
+            run: |
+              git config --global user.name 'github-actions[bot]'
+              git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+              
+              # Only try to add the file if it actually exists
+              if [ -f posted.json ]; then
+                git add posted.json
+              fi
+              
+              git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update posted.json history" && git push)
